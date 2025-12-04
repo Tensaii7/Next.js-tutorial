@@ -2,9 +2,15 @@ import bcrypt from 'bcrypt';
 import postgres from 'postgres';
 import { invoices, customers, revenue, users } from '../lib/placeholder-data';
 
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+function getSql() {
+  if (!process.env.POSTGRES_URL) {
+    throw new Error('POSTGRES_URL environment variable is not set');
+  }
+  return postgres(process.env.POSTGRES_URL, { ssl: 'require' });
+}
 
 async function seedUsers() {
+  const sql = getSql();
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await sql`
     CREATE TABLE IF NOT EXISTS users (
@@ -30,6 +36,7 @@ async function seedUsers() {
 }
 
 async function seedInvoices() {
+  const sql = getSql();
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
   await sql`
@@ -56,6 +63,7 @@ async function seedInvoices() {
 }
 
 async function seedCustomers() {
+  const sql = getSql();
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
   await sql`
@@ -81,6 +89,7 @@ async function seedCustomers() {
 }
 
 async function seedRevenue() {
+  const sql = getSql();
   await sql`
     CREATE TABLE IF NOT EXISTS revenue (
       month VARCHAR(4) NOT NULL UNIQUE,
@@ -103,6 +112,7 @@ async function seedRevenue() {
 
 export async function GET() {
   try {
+    const sql = getSql();
     const result = await sql.begin((sql) => [
       seedUsers(),
       seedCustomers(),
